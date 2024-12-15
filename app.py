@@ -14,7 +14,7 @@ os.environ['TFHUB_MODEL_LOAD_FORMAT'] = 'COMPRESSED'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 st.write("""
-# Neural Style Transfer
+# 风格迁移神器
 """)
 
 # Singleton pattern for model loading
@@ -30,7 +30,7 @@ class ModelLoader:
 model_load_state = st.text('Loading Model...')
 model = ModelLoader.get_model()
 # Notify the reader that the data was successfully loaded.
-model_load_state.text('Loading Model...done!')
+model_load_state.text('模型加载完毕...done!')
 
 def ensure_rgb(image):
     if image.shape[-1] == 4:
@@ -41,22 +41,22 @@ def ensure_rgb(image):
 content_image_col, style_image_col = st.columns(2)
 
 with content_image_col:
-    st.write('## Content Image...')
-    chosen_content = st.radio('Choose content image source:', ("Upload", "URL"))
+    st.write('## 内容图像...')
+    chosen_content = st.radio('Choose content image source:', ("本地上传", "URL"))
     if chosen_content == 'Upload':
-        content_image_file = st.file_uploader("Pick a Content image", type=("png", "jpg"))
+        content_image_file = st.file_uploader("选择一个内容图像", type=("png", "jpg"))
         if content_image_file:
             content_image_file = transform_img(content_image_file.read())
             content_image_file = ensure_rgb(content_image_file)
     elif chosen_content == 'URL':
-        url = st.text_input('URL for the content image.')
+        url = st.text_input('图片的链接URL')
         if url:
             try:
                 content_path = tf.keras.utils.get_file('content.jpg', url)
                 content_image_file = load_img(content_path)
                 content_image_file = ensure_rgb(content_image_file)
             except Exception as e:
-                st.error(f"Error loading image: {e}")
+                st.error(f"加载失败: {e}")
 
     if 'content_image_file' in locals():
         if content_image_file is not None:
@@ -64,29 +64,29 @@ with content_image_col:
             st.image(imshow(content_image_file))
 
 with style_image_col:
-    st.write('## Style Image...')
-    chosen_style = st.radio('Choose style image source:', ("Upload", "URL"))
+    st.write('## 风格图像...')
+    chosen_style = st.radio('Choose style image source:', ("本地上传", "URL"))
     if chosen_style == 'Upload':
         style_image_file = st.file_uploader("Pick a Style image", type=("png", "jpg"))
         if style_image_file:
             style_image_file = transform_img(style_image_file.read())
             style_image_file = ensure_rgb(style_image_file)
     elif chosen_style == 'URL':
-        url = st.text_input('URL for the style image.')
+        url = st.text_input('URL for the 风格 图片.')
         if url:
             try:
                 style_path = tf.keras.utils.get_file('style.jpg', url)
                 style_image_file = load_img(style_path)
                 style_image_file = ensure_rgb(style_image_file)
             except Exception as e:
-                st.error(f"Error loading image: {e}")
+                st.error(f"加载失败: {e}")
 
     if 'style_image_file' in locals():
         if style_image_file is not None:
             st.write('Style Image...')
             st.image(imshow(style_image_file))
 
-predict = st.button('Start Neural Style Transfer...')
+predict = st.button('开始风格迁移...')
 
 if predict:
     if 'content_image_file' in locals() and 'style_image_file' in locals():
@@ -104,5 +104,5 @@ if predict:
                 if os.path.exists(img):
                     os.remove(img)
 
-st.write('Made by Kairav with \u2764\ufe0f.')
-st.write('Happy Coding.')
+#st.write('Made by ')
+#st.write('Happy Coding.')
