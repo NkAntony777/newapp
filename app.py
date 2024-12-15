@@ -38,13 +38,6 @@ def ensure_rgb(image):
         image = image[..., :3]
     return image
 
-# Predefined styles and their model paths
-STYLE_MODELS = {
-    "Cuphead": "cuphead_10000.pth",
-    "Starry Night": "starry_night_10000.pth",
-    "Mosaic": "mosaic_10000.pth"
-}
-
 content_image_col, style_image_col = st.columns(2)
 
 with content_image_col:
@@ -72,24 +65,44 @@ with content_image_col:
 
 with style_image_col:
     st.write('## Style Image...')
-    selected_style = st.selectbox('Choose a style:', list(STYLE_MODELS.keys()))
+    chosen_style = st.radio('Choose style image source:', ("Upload", "URL"))
+    if chosen_style == 'Upload':
+        style_image_file = st.file_uploader("Pick a Style image", type=("png", "jpg"))
+        if style_image_file:
+            style_image_file = transform_img(style_image_file.read())
+            style_image_file = ensure_rgb(style_image_file)
+    elif chosen_style == 'URL':
+        url = st.text_input('URL for the style image.')
+        if url:
+            try:
+                style_path = tf.keras.utils.get_file('style.jpg', url)
+                style_image_file = load_img(style_path)
+                style_image_file = ensure_rgb(style_image_file)
+            except Exception as e:
+                st.error(f"Error loading image: {e}")
+
+    if 'style_image_file' in locals():
+        if style_image_file is not None:
+            st.write('Style Image...')
+            st.image(imshow(style_image_file))
 
 predict = st.button('Start Neural Style Transfer...')
 
 if predict:
-    if 'content_image_file' in locals() and selected_style in STYLE_MODELS:
+    if 'content_image_file' in locals() and 'style_image_file' in locals():
         try:
-            style_model_path = STYLE_MODELS[selected_style]
-            # Example of loading a model based on selected style
-            # Here you need to ensure you implement model loading using the file
-            # Currently this is placeholder logic as loading depends on your framework
-            stylized_image = model(tf.constant(content_image_file), style_model_path)[0]
+            stylized_image = model(tf.constant(content_image_file), tf.constant(style_image_file))[0]
             final_image = tensor_to_image(stylized_image)
         except Exception as e:
             st.error(f"Error during style transfer: {e}")
         else:
             st.write('Resultant Image...')
             st.image(final_image)
+        finally:
+            # Delete style.jpg and content.jpg if they exist
+            for img in ['style.jpg', 'content.jpg']:
+                if os.path.exists(img):
+                    os.remove(img)
 
 st.write('Made by Kairav with \u2764\ufe0f.')
 st.write('Happy Coding.')
